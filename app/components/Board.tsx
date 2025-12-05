@@ -3,16 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import DraggableBox from './DraggableBox';
 import ToolboxPanel from './ToolboxPanel';
-
-interface Box {
-  id: string;
-  x: number;
-  y: number;
-  name: string;
-  catalog: string;
-  linkedTo: string;
-  color: string;
-}
+import { Box } from '../models/Box';
 
 export default function Board() {
   const toolboxWidth = 320; // w-80 = 320px
@@ -24,6 +15,7 @@ export default function Board() {
     { id: '5', x: 550, y: 400, name: 'Box 5', catalog: 'Category B', linkedTo: '', color: '#f59e0b' },
   ]);
   const [draggingBoxId, setDraggingBoxId] = useState<string | null>(null);
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ 
     width: 2000, 
     height: 2000 
@@ -84,6 +76,14 @@ export default function Board() {
     );
   };
 
+  const handleUpdateBox = (id: string, field: 'name' | 'catalog' | 'linkedTo', value: string) => {
+    if (field === 'linkedTo') {
+      handleLinkChange(id, value);
+    } else {
+      handleTextChange(id, field, value);
+    }
+  };
+
   const handleDragStateChange = (id: string, isDragging: boolean) => {
     setDraggingBoxId(isDragging ? id : null);
     
@@ -99,6 +99,13 @@ export default function Board() {
 
   const handleRemove = (id: string) => {
     setBoxes((prevBoxes) => prevBoxes.filter((box) => box.id !== id));
+    if (selectedBoxId === id) {
+      setSelectedBoxId(null);
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    setSelectedBoxId(id);
   };
 
   const handleAddBox = () => {
@@ -228,10 +235,9 @@ export default function Board() {
           color={box.color}
           availableBoxes={boxes.map(b => ({ id: b.id, name: b.name }))}
           onPositionChange={handlePositionChange}
-          onTextChange={handleTextChange}
-          onLinkChange={handleLinkChange}
           onDragStateChange={handleDragStateChange}
           onRemove={handleRemove}
+          onEdit={handleEdit}
         />
       ))}
         </div>
@@ -239,9 +245,12 @@ export default function Board() {
 
       {/* Toolbox Panel */}
       <ToolboxPanel 
-        boxCount={boxes.length}
-        connectionCount={boxes.filter(b => b.linkedTo).length}
+        boxes={boxes.map(b => ({ id: b.id, name: b.name, catalog: b.catalog, linkedTo: b.linkedTo }))}
+        selectedBoxId={selectedBoxId}
         onAddBox={handleAddBox}
+        onUpdateBox={handleUpdateBox}
+        onSelectBox={setSelectedBoxId}
+        onDeselectBox={() => setSelectedBoxId(null)}
       />
     </div>
   );

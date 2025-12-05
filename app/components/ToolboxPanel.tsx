@@ -1,10 +1,21 @@
+'use client';
+
+import { BoxListItem } from '../models/Box';
+import BoxList from './BoxList';
+import BoxEditor from './BoxEditor';
+
 interface ToolboxPanelProps {
-  boxCount: number;
-  connectionCount: number;
+  boxes: BoxListItem[];
+  selectedBoxId: string | null;
   onAddBox: () => void;
+  onUpdateBox: (id: string, field: 'name' | 'catalog' | 'linkedTo', value: string) => void;
+  onSelectBox: (id: string) => void;
+  onDeselectBox: () => void;
 }
 
-export default function ToolboxPanel({ boxCount, connectionCount, onAddBox }: ToolboxPanelProps) {
+export default function ToolboxPanel({ boxes, selectedBoxId, onAddBox, onUpdateBox, onSelectBox, onDeselectBox }: ToolboxPanelProps) {
+  const selectedBox = boxes.find(b => b.id === selectedBoxId) || null;
+
   return (
     <div className="w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col">
       <div className="p-6 border-b border-gray-200">
@@ -19,20 +30,21 @@ export default function ToolboxPanel({ boxCount, connectionCount, onAddBox }: To
           >
             + Add Box
           </button>
-          
-          <div className="pt-4 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Statistics</h3>
-            <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex justify-between">
-                <span>Total Boxes:</span>
-                <span className="font-semibold text-gray-800">{boxCount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Connections:</span>
-                <span className="font-semibold text-gray-800">{connectionCount}</span>
-              </div>
-            </div>
-          </div>
+
+          {!selectedBox ? (
+            <BoxList 
+              boxes={boxes}
+              onSelectBox={onSelectBox}
+              selectedBoxId={selectedBoxId}
+            />
+          ) : (
+            <BoxEditor 
+              box={selectedBox}
+              availableBoxes={boxes}
+              onUpdate={onUpdateBox}
+              onClose={onDeselectBox}
+            />
+          )}
         </div>
       </div>
     </div>
